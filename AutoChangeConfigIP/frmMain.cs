@@ -60,6 +60,7 @@ namespace AutoChangeConfigIP
         private void Init()
         {
             this.Text = "自动更改采集站服务器IP,Ver:" + Application.ProductVersion;
+            
             CreateFolder();
             CreateIni();
             ReadIni();
@@ -125,7 +126,7 @@ namespace AutoChangeConfigIP
         private void txtServerName_TextChanged(object sender, EventArgs e)
         {
             ServerName = txtServerName.Text.Trim();
-            ServerName = IniFile.IniReadValue("SysConfig", "ServerName", AppConfig);
+            IniFile.IniWriteValue("SysConfig", "ServerName", ServerName, AppConfig);
         }
     }
 }
