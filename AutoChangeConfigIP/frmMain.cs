@@ -98,7 +98,16 @@ namespace AutoChangeConfigIP
             {
                 ConfigPath = IniFile.IniReadValue("SysConfig", "ConfigPath", AppConfig);
                 ServerName = IniFile.IniReadValue("SysConfig", "ServerName", AppConfig);
-                NetTag = Convert.ToInt16(IniFile.IniReadValue("SysConfig", "NetTag", AppConfig));
+                try
+                {
+                    NetTag = Convert.ToInt16(IniFile.IniReadValue("SysConfig", "NetTag", AppConfig));
+                }
+                catch (Exception)
+                {
+
+                    NetTag = -1;
+                }
+              
             }
         }
 
@@ -110,6 +119,7 @@ namespace AutoChangeConfigIP
         {
             txtConfigPath.Text = ConfigPath;
             txtServerName.Text = ServerName;
+            txtNetTag.Text = NetTag.ToString();
 
         }
 
@@ -248,20 +258,20 @@ namespace AutoChangeConfigIP
                 UpdateMsg("服务器" + ServerName +","+ exmsg);
             }
 
-            if (databaseip != iplist[0])
+            if (databaseip != iplist[NetTag])
             {
-                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[0], ConfigPath);
-                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[0]);
+                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[NetTag ], ConfigPath);
+                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[NetTag ]);
             }
             if (ctrlserverip != iplist[0])
             {
-                IniFile.IniWriteValue("CtrlServer", "IP", iplist[0], ConfigPath);
-                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[0]);
+                IniFile.IniWriteValue("CtrlServer", "IP", iplist[NetTag ], ConfigPath);
+                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[NetTag ]);
             }
             if (ftpip != iplist[0])
             {
-                IniFile.IniWriteValue("FtpServer", "IP", iplist[0], ConfigPath);
-                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[0]);
+                IniFile.IniWriteValue("FtpServer", "IP", iplist[NetTag ], ConfigPath);
+                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[NetTag ]);
             }
 
 
@@ -276,7 +286,67 @@ namespace AutoChangeConfigIP
         private void btnStart_Click(object sender, EventArgs e)
         {
             //AutoChangeIP();
-            MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
+
+
+            //
+
+            if (NetTag == -1)
+            {
+                MessageBox.Show("未保证正确获取IP地址，请先点击'测试网卡',侦测服务器网卡地址", "Check First", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                return;
+            }
+            else
+            {
+                string exmsg = string.Empty;
+                List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
+                comboNetIpList.Items.Clear();
+                if (exmsg == "OK")
+                {
+                    for (int i = 0; i < iplist.Count; i++)
+                    {
+                        comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
+                    }
+
+                    if ((NetTag+1) > iplist.Count)
+                    {
+
+                        if (iplist.Count > 1)
+                        {
+                            //for (int i = 0; i < iplist.Count; i++)
+                            //{
+                            //    comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
+                            //}
+                            MessageBox.Show("NetTag:" + NetTag + "大于服务器网卡数,请重新设置", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                            comboNetIpList.Focus();
+                            return;
+                        }
+                        else
+                        {
+                            UpdateMsg("NetTag:" + NetTag + "大于实际服务器网卡数且服务器网卡数为1,自动修正.");
+                           // comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
+                            comboNetIpList.SelectedIndex = 0;
+                        }
+
+                    }
+                    else
+                        comboNetIpList.SelectedIndex = NetTag;
+     
+                }
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+            //
+           // MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
             timer1.Interval = 1000;
             timer1.Start();
             txtSec.ReadOnly = true;
@@ -284,10 +354,12 @@ namespace AutoChangeConfigIP
             txtServerName.Enabled = false;
             btnStart.Enabled = false;
             btnStop.Enabled = true;
+            comboNetIpList.Enabled = false;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+
             timer1.Stop();
             iInterval = Convert.ToInt16(txtSec.Text.Trim());
             iInterval--;
@@ -310,6 +382,7 @@ namespace AutoChangeConfigIP
             txtServerName.Enabled = true;
             btnStart.Enabled = true;
             btnStop.Enabled = false;
+            comboNetIpList.Enabled = true;
         }
 
         private void btnDebugNet_Click(object sender, EventArgs e)
@@ -325,16 +398,16 @@ namespace AutoChangeConfigIP
                     {
                         comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
                     }
+                    MessageBox.Show("服务器可能存在多张网卡(含虚拟网卡)，请选择采集站需要使用的服务器网卡IP地址", "Muti Net", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                    comboNetIpList.Focus();
                 }
                 else
                 {
                     comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
                     comboNetIpList.SelectedIndex = 0;
+                    UpdateMsg("服务器网卡数为1,已自动设置.");
                 }
-
-       
-
-
+                
             }
 
         }

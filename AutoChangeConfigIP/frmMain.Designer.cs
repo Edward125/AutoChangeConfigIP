@@ -150,6 +150,7 @@
             this.txtSec.Font = new System.Drawing.Font("Calibri", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtSec.Location = new System.Drawing.Point(409, 23);
             this.txtSec.Name = "txtSec";
+            this.txtSec.ReadOnly = true;
             this.txtSec.Size = new System.Drawing.Size(45, 50);
             this.txtSec.TabIndex = 6;
             this.txtSec.Text = "10";
