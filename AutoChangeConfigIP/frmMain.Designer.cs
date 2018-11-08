@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnStop = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
@@ -44,8 +45,14 @@
             this.label3 = new System.Windows.Forms.Label();
             this.btnDebugNet = new System.Windows.Forms.Button();
             this.txtNetTag = new System.Windows.Forms.TextBox();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.帮助ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bgwCheckServer = new System.ComponentModel.BackgroundWorker();
+            this.bgwChangeIP = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -61,7 +68,7 @@
             this.groupBox1.Controls.Add(this.btnStop);
             this.groupBox1.Controls.Add(this.txtServerName);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Location = new System.Drawing.Point(12, 20);
+            this.groupBox1.Location = new System.Drawing.Point(12, 28);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(472, 137);
             this.groupBox1.TabIndex = 0;
@@ -93,7 +100,7 @@
             this.txtServerName.Location = new System.Drawing.Point(87, 26);
             this.txtServerName.Name = "txtServerName";
             this.txtServerName.Size = new System.Drawing.Size(229, 21);
-            this.txtServerName.TabIndex = 3;
+            this.txtServerName.TabIndex = 0;
             this.txtServerName.TextChanged += new System.EventHandler(this.txtServerName_TextChanged);
             // 
             // txtConfigPath
@@ -126,7 +133,7 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.lstMsg);
-            this.groupBox2.Location = new System.Drawing.Point(12, 163);
+            this.groupBox2.Location = new System.Drawing.Point(12, 171);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(472, 392);
             this.groupBox2.TabIndex = 1;
@@ -163,7 +170,7 @@
             this.comboNetIpList.Location = new System.Drawing.Point(87, 62);
             this.comboNetIpList.Name = "comboNetIpList";
             this.comboNetIpList.Size = new System.Drawing.Size(229, 20);
-            this.comboNetIpList.TabIndex = 7;
+            this.comboNetIpList.TabIndex = 1;
             this.comboNetIpList.SelectedIndexChanged += new System.EventHandler(this.comboNetIpList_SelectedIndexChanged);
             // 
             // label3
@@ -180,7 +187,7 @@
             this.btnDebugNet.Location = new System.Drawing.Point(326, 20);
             this.btnDebugNet.Name = "btnDebugNet";
             this.btnDebugNet.Size = new System.Drawing.Size(75, 30);
-            this.btnDebugNet.TabIndex = 9;
+            this.btnDebugNet.TabIndex = 3;
             this.btnDebugNet.Text = "测试网卡";
             this.btnDebugNet.UseVisualStyleBackColor = true;
             this.btnDebugNet.Click += new System.EventHandler(this.btnDebugNet_Click);
@@ -195,23 +202,62 @@
             this.txtNetTag.TabIndex = 10;
             this.txtNetTag.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.帮助ToolStripMenuItem,
+            this.退出ToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(498, 25);
+            this.menuStrip1.TabIndex = 2;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // 帮助ToolStripMenuItem
+            // 
+            this.帮助ToolStripMenuItem.Name = "帮助ToolStripMenuItem";
+            this.帮助ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
+            this.帮助ToolStripMenuItem.Text = "帮助";
+            this.帮助ToolStripMenuItem.Click += new System.EventHandler(this.帮助ToolStripMenuItem_Click);
+            // 
+            // 退出ToolStripMenuItem
+            // 
+            this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
+            this.退出ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
+            this.退出ToolStripMenuItem.Text = "退出";
+            this.退出ToolStripMenuItem.Click += new System.EventHandler(this.退出ToolStripMenuItem_Click);
+            // 
+            // bgwCheckServer
+            // 
+            this.bgwCheckServer.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwCheckServer_DoWork);
+            // 
+            // bgwChangeIP
+            // 
+            this.bgwChangeIP.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwChangeIP_DoWork);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(503, 567);
+            this.ClientSize = new System.Drawing.Size(498, 570);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -232,6 +278,11 @@
         private System.Windows.Forms.ComboBox comboNetIpList;
         private System.Windows.Forms.Button btnDebugNet;
         private System.Windows.Forms.TextBox txtNetTag;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem 帮助ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
+        private System.ComponentModel.BackgroundWorker bgwCheckServer;
+        private System.ComponentModel.BackgroundWorker bgwChangeIP;
     }
 }
 

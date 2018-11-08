@@ -52,8 +52,8 @@ namespace AutoChangeConfigIP
         {
             if (!Directory.Exists(AppFolder))
                 Directory.CreateDirectory(AppFolder);
-            if (!Directory.Exists(AppLog))
-                Directory.CreateDirectory(AppLog);
+            //if (!Directory.Exists(AppLog))
+            //    Directory.CreateDirectory(AppLog);
         }
 
 
@@ -258,20 +258,20 @@ namespace AutoChangeConfigIP
                 UpdateMsg("服务器" + ServerName +","+ exmsg);
             }
 
-            if (databaseip != iplist[NetTag])
+            if (databaseip != iplist[NetTag-1])
             {
-                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[NetTag ], ConfigPath);
-                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[NetTag ]);
+                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[NetTag-1 ], ConfigPath);
+                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[NetTag-1 ]);
             }
-            if (ctrlserverip != iplist[0])
+            if (ctrlserverip != iplist[NetTag-1 ])
             {
-                IniFile.IniWriteValue("CtrlServer", "IP", iplist[NetTag ], ConfigPath);
-                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[NetTag ]);
+                IniFile.IniWriteValue("CtrlServer", "IP", iplist[NetTag-1 ], ConfigPath);
+                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[NetTag-1 ]);
             }
-            if (ftpip != iplist[0])
+            if (ftpip != iplist[NetTag-1])
             {
-                IniFile.IniWriteValue("FtpServer", "IP", iplist[NetTag ], ConfigPath);
-                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[NetTag ]);
+                IniFile.IniWriteValue("FtpServer", "IP", iplist[NetTag-1 ], ConfigPath);
+                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[NetTag-1 ]);
             }
 
 
@@ -285,92 +285,96 @@ namespace AutoChangeConfigIP
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            //AutoChangeIP();
+            if (!bgwChangeIP.IsBusy)
+            {
+                PressStart();
+            }
+
+        }
+
+
+
+
+        private void PressStart()
+        {
+          this.Invoke((EventHandler)(delegate
+          {
+              UpdateMsg("正在测试网卡...");
+              if (NetTag == 0)
+              {
+                  MessageBox.Show("未保证正确获取IP地址，请先点击'测试网卡',侦测服务器网卡地址", "Check First", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                  return;
+              }
+              else
+              {
+                  string exmsg = string.Empty;
+                  List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
+                  comboNetIpList.Items.Clear();
+                  if (exmsg == "OK")
+                  {
+                      for (int i = 0; i < iplist.Count; i++)
+                      {
+                          comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
+                      }
+
+                      if (NetTag > iplist.Count)
+                      {
+                          if (iplist.Count > 1)
+                          {
+                              MessageBox.Show("NetTag:" + NetTag + "大于服务器网卡数,请重新设置", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                              comboNetIpList.Focus();
+                              return;
+                          }
+                          else
+                          {
+                              UpdateMsg("NetTag:" + NetTag + "大于实际服务器网卡数且服务器网卡数为1,自动修正.");
+                              comboNetIpList.SelectedIndex = 0;
+                          }
+                      }
+                      else
+                          comboNetIpList.SelectedIndex = NetTag - 1;
+                  }
+                  else
+                  {
+                      UpdateMsg("服务器:" + ServerName + "," + exmsg);
+                      MessageBox.Show(exmsg);
+                      return;
+                  }
+
+              }
+
+          }));
+
+
+
 
 
             //
-
-            if (NetTag == -1)
-            {
-                MessageBox.Show("未保证正确获取IP地址，请先点击'测试网卡',侦测服务器网卡地址", "Check First", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-                return;
-            }
-            else
-            {
-                string exmsg = string.Empty;
-                List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
-                comboNetIpList.Items.Clear();
-                if (exmsg == "OK")
-                {
-                    for (int i = 0; i < iplist.Count; i++)
-                    {
-                        comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
-                    }
-
-                    if ((NetTag+1) > iplist.Count)
-                    {
-
-                        if (iplist.Count > 1)
-                        {
-                            //for (int i = 0; i < iplist.Count; i++)
-                            //{
-                            //    comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
-                            //}
-                            MessageBox.Show("NetTag:" + NetTag + "大于服务器网卡数,请重新设置", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                            comboNetIpList.Focus();
-                            return;
-                        }
-                        else
-                        {
-                            UpdateMsg("NetTag:" + NetTag + "大于实际服务器网卡数且服务器网卡数为1,自动修正.");
-                           // comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
-                            comboNetIpList.SelectedIndex = 0;
-                        }
-
-                    }
-                    else
-                        comboNetIpList.SelectedIndex = NetTag;
-     
-                }
-
-            }
-
-
-
-
-
-
-
-
-
-
-
-            //
-           // MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
+            // MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
             timer1.Interval = 1000;
             timer1.Start();
+            UpdateMsg("正在倒计时等待...");
             txtSec.ReadOnly = true;
             txtConfigPath.Enabled = false;
             txtServerName.Enabled = false;
             btnStart.Enabled = false;
             btnStop.Enabled = true;
             comboNetIpList.Enabled = false;
+            btnDebugNet.Enabled = false;
         }
-
         private void timer1_Tick(object sender, EventArgs e)
         {
-
-            timer1.Stop();
             iInterval = Convert.ToInt16(txtSec.Text.Trim());
             iInterval--;
             txtSec.Text = iInterval.ToString();
             if (iInterval == 0)
             {
+                timer1.Stop();
                 AutoChangeIP();
                 txtSec.Text = MAXINTERVAL.ToString();
-                
+                timer1.Start();
             }
-            timer1.Start();
+
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -383,40 +387,107 @@ namespace AutoChangeConfigIP
             btnStart.Enabled = true;
             btnStop.Enabled = false;
             comboNetIpList.Enabled = true;
+            btnDebugNet.Enabled = true;
         }
 
         private void btnDebugNet_Click(object sender, EventArgs e)
         {
-            string exmsg = string.Empty;
-            List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
-            comboNetIpList.Items.Clear();
-            if (exmsg == "OK")
+            if (!bgwCheckServer.IsBusy)
             {
-                if (iplist.Count > 1)
-                {
-                    for (int i = 0; i < iplist.Count; i++)
-                    {
-                        comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
-                    }
-                    MessageBox.Show("服务器可能存在多张网卡(含虚拟网卡)，请选择采集站需要使用的服务器网卡IP地址", "Muti Net", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-                    comboNetIpList.Focus();
-                }
-                else
-                {
-                    comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
-                    comboNetIpList.SelectedIndex = 0;
-                    UpdateMsg("服务器网卡数为1,已自动设置.");
-                }
-                
+                UpdateMsg("正在测试网卡...");
+               bgwCheckServer.RunWorkerAsync();
             }
+
+        }
+
+
+
+
+        private void CheckServer()
+        {
+
+            this.Invoke((EventHandler)(delegate
+              {
+                  if (string.IsNullOrEmpty(txtServerName.Text.Trim()))
+                  {
+                      MessageBox.Show("服务器名称不能为空,请重新设置", "Empty", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                      txtServerName.Focus();
+                      return;
+                  }
+
+                  string exmsg = string.Empty;
+                  List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
+                  comboNetIpList.Items.Clear();
+                  if (exmsg == "OK")
+                  {
+                      if (iplist.Count > 1)
+                      {
+                          for (int i = 0; i < iplist.Count; i++)
+                          {
+                              comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
+                          }
+                          MessageBox.Show("服务器可能存在多张网卡(含虚拟网卡)，请选择采集站需要使用的服务器网卡IP地址", "Muti Net", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                          comboNetIpList.Focus();
+                      }
+                      else
+                      {
+                          comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
+                          comboNetIpList.SelectedIndex = 0;
+                          UpdateMsg("服务器网卡数为1,已自动设置.");
+                      }
+                  }
+                  else
+                  {
+                      UpdateMsg("服务器:" + ServerName + "," + exmsg);
+                      MessageBox.Show(exmsg);
+                  }
+              }));
 
         }
 
         private void comboNetIpList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            NetTag = comboNetIpList.SelectedIndex;
-            txtNetTag.Text = comboNetIpList.SelectedIndex.ToString();
+            NetTag = comboNetIpList.SelectedIndex + 1;
+            txtNetTag.Text = NetTag.ToString();
             IniFile.IniWriteValue("SysConfig", "NetTag", NetTag.ToString(), AppConfig);
+        }
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                Environment.Exit(0);
+            }
+            else
+                e.Cancel = true;
+        }
+
+        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                Environment.Exit(0);
+            }
+
+
+        }
+
+        private void 帮助ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form f = new frmHelp();
+            f.ShowDialog();
+        }
+
+        private void bgwCheckServer_DoWork(object sender, DoWorkEventArgs e)
+        {
+            CheckServer();
+        }
+
+        private void bgwChangeIP_DoWork(object sender, DoWorkEventArgs e)
+        {
+            PressStart();
         }
 
 
