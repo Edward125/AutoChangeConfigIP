@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using Edward;
+using System.Net;
 
 namespace AutoChangeConfigIP
 {
@@ -106,6 +107,67 @@ namespace AutoChangeConfigIP
             txtServerName.Text = ServerName;
 
         }
+
+
+
+
+        #region 枚举
+
+
+        public enum IPType
+        {
+            IPV4,
+            IPV6
+        }
+        #endregion
+
+
+        #region 获取IP
+
+        /// <summary>
+        /// 获取IP地址,本机IP地址hostname=dns.gethostname(),返回一个IP list
+        /// </summary>
+        /// <param name="hostname">hostname</param>
+        /// <returns>返回一个字符串类型的ip list</returns>
+        public static List<string> getIP(string hostname)
+        {
+            List<string> iplist = new List<string>();
+            System.Net.IPAddress[] addressList = Dns.GetHostAddresses(hostname);//会返回所有地址，包括IPv4和IPv6   
+            foreach (IPAddress ip in addressList)
+            {
+                iplist.Add(ip.ToString());
+            }
+            return iplist;
+        }
+
+        /// <summary>
+        /// 获取IP地址,本机IP地址hostname=dns.gethostname(),返回一个IP list
+        /// </summary>
+        /// <param name="hostname">hostname</param>
+        /// <param name="iptype">ip地址的类型，IPV4,IPV6</param>
+        /// <returns>返回一个字符串类型的ip list</returns>
+        public static List<string> getIP(string hostname, IPType iptype)
+        {
+            List<string> iplist = new List<string>();
+            IPAddress[] addressList = Dns.GetHostAddresses(hostname);
+            foreach (IPAddress ip in addressList)
+            {
+                if (iptype == IPType.IPV4)
+                {
+                    if (ip.ToString().Contains("."))
+                        iplist.Add(ip.ToString());
+                }
+                if (iptype == IPType.IPV6)
+                {
+                    if (!ip.ToString().Contains("."))
+                        iplist.Add(ip.ToString());
+                }
+            }
+            return iplist;
+        }
+
+        #endregion
+
 
         private void txtConfigPath_DoubleClick(object sender, EventArgs e)
         {
