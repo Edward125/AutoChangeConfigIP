@@ -24,6 +24,7 @@ namespace AutoChangeConfigIP
         private static string AppConfig = AppFolder + @"\SysConfig.ini";
         private static string ConfigPath = @"D:\RecordColl\RecordCollCfg.ini";
         private static string ServerName = "";
+        private static int NetTag = -1;
 
         int iInterval = 10;
         int MAXINTERVAL = 10;
@@ -82,6 +83,7 @@ namespace AutoChangeConfigIP
                 IniFile.iniFilePathValue = AppConfig;
                 IniFile.IniWriteValue("SysConfig", "ConfigPath", ConfigPath, AppConfig);
                 IniFile.IniWriteValue("SysConfig", "ServerName", ServerName, AppConfig);
+                IniFile.IniWriteValue("SysConfig", "NetTag",NetTag.ToString () , AppConfig);
             }
 
         }
@@ -96,6 +98,7 @@ namespace AutoChangeConfigIP
             {
                 ConfigPath = IniFile.IniReadValue("SysConfig", "ConfigPath", AppConfig);
                 ServerName = IniFile.IniReadValue("SysConfig", "ServerName", AppConfig);
+                NetTag = Convert.ToInt16(IniFile.IniReadValue("SysConfig", "NetTag", AppConfig));
             }
         }
 
@@ -307,6 +310,40 @@ namespace AutoChangeConfigIP
             txtServerName.Enabled = true;
             btnStart.Enabled = true;
             btnStop.Enabled = false;
+        }
+
+        private void btnDebugNet_Click(object sender, EventArgs e)
+        {
+            string exmsg = string.Empty;
+            List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
+            comboNetIpList.Items.Clear();
+            if (exmsg == "OK")
+            {
+                if (iplist.Count > 1)
+                {
+                    for (int i = 0; i < iplist.Count; i++)
+                    {
+                        comboNetIpList.Items.Add("网卡" + (i + 1) + "的IP:" + iplist[i]);
+                    }
+                }
+                else
+                {
+                    comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
+                    comboNetIpList.SelectedIndex = 0;
+                }
+
+       
+
+
+            }
+
+        }
+
+        private void comboNetIpList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            NetTag = comboNetIpList.SelectedIndex;
+            txtNetTag.Text = comboNetIpList.SelectedIndex.ToString();
+            IniFile.IniWriteValue("SysConfig", "NetTag", NetTag.ToString(), AppConfig);
         }
 
 
