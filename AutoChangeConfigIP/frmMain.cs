@@ -25,7 +25,8 @@ namespace AutoChangeConfigIP
         private static string ConfigPath = @"D:\RecordColl\RecordCollCfg.ini";
         private static string ServerName = "";
 
-
+        int iInterval = 10;
+        int MAXINTERVAL = 10;
 
         /// <summary>
         /// 
@@ -61,7 +62,8 @@ namespace AutoChangeConfigIP
         private void Init()
         {
             this.Text = "自动更改采集站服务器IP,Ver:" + Application.ProductVersion;
-            
+            txtConfigPath.SetWatermark("双击此处选择采集站配置档案");
+            txtServerName.SetWatermark("请在此输入采集站服务器的电脑名");  
             CreateFolder();
             CreateIni();
             ReadIni();
@@ -109,8 +111,6 @@ namespace AutoChangeConfigIP
         }
 
 
-
-
         #region 枚举
 
 
@@ -146,27 +146,47 @@ namespace AutoChangeConfigIP
         /// <param name="hostname">hostname</param>
         /// <param name="iptype">ip地址的类型，IPV4,IPV6</param>
         /// <returns>返回一个字符串类型的ip list</returns>
-        public static List<string> getIP(string hostname, IPType iptype)
+        public static List<string> getIP(string hostname, IPType iptype,out string exmsg)
         {
+            exmsg = string.Empty;
             List<string> iplist = new List<string>();
-            IPAddress[] addressList = Dns.GetHostAddresses(hostname);
-            foreach (IPAddress ip in addressList)
+            try
             {
-                if (iptype == IPType.IPV4)
+                IPAddress[] addressList = Dns.GetHostAddresses(hostname);
+                foreach (IPAddress ip in addressList)
                 {
-                    if (ip.ToString().Contains("."))
-                        iplist.Add(ip.ToString());
+                    if (iptype == IPType.IPV4)
+                    {
+                        if (ip.ToString().Contains("."))
+                            iplist.Add(ip.ToString());
+                    }
+                    if (iptype == IPType.IPV6)
+                    {
+                        if (!ip.ToString().Contains("."))
+                            iplist.Add(ip.ToString());
+                    }
                 }
-                if (iptype == IPType.IPV6)
-                {
-                    if (!ip.ToString().Contains("."))
-                        iplist.Add(ip.ToString());
-                }
+                exmsg = "OK";
             }
+            catch (Exception ex)
+            {
+
+                exmsg = ex.Message;
+            }
+          
+   
             return iplist;
         }
 
         #endregion
+
+
+        private void UpdateMsg(string msg)
+        {
+            lstMsg.Items.Add(DateTime.Now.ToString("hh:mm:ss") + "->" + @msg);
+            lstMsg.SelectedIndex = lstMsg.Items.Count - 1;
+        }
+
 
 
         private void txtConfigPath_DoubleClick(object sender, EventArgs e)
@@ -190,5 +210,105 @@ namespace AutoChangeConfigIP
             ServerName = txtServerName.Text.Trim();
             IniFile.IniWriteValue("SysConfig", "ServerName", ServerName, AppConfig);
         }
+
+
+
+        private void AutoChangeIP()
+        {
+            if (!File.Exists(ConfigPath))
+            {
+                MessageBox.Show(ConfigPath + "不存在,请重新设置.", "Not Find File", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                txtConfigPath.SelectAll();
+                txtConfigPath.Focus();
+                UpdateMsg(ConfigPath + "不存在,请重新设置.");
+
+                return;
+            }
+            string databaseip = IniFile.IniReadValue("DataBaseServer", "IP", ConfigPath);
+            UpdateMsg("DataBaseIP:" + databaseip);
+            string ctrlserverip = IniFile.IniReadValue("CtrlServer", "IP", ConfigPath);
+            UpdateMsg("CtrlServer" + ctrlserverip);
+            string ftpip = IniFile.IniReadValue("FtpServer", "IP", ConfigPath);
+            UpdateMsg("FtpServer" + ftpip);
+
+            string exmsg = string.Empty;
+            List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
+            if (exmsg == "OK")
+            {
+                foreach (string item in iplist)
+                {
+                    UpdateMsg("服务器" + ServerName + "的IP:" + item);
+                }
+            }
+            else
+            {
+                UpdateMsg("服务器" + ServerName +","+ exmsg);
+            }
+
+            if (databaseip != iplist[0])
+            {
+                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[0], ConfigPath);
+                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[0]);
+            }
+            if (ctrlserverip != iplist[0])
+            {
+                IniFile.IniWriteValue("CtrlServer", "IP", iplist[0], ConfigPath);
+                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[0]);
+            }
+            if (ftpip != iplist[0])
+            {
+                IniFile.IniWriteValue("FtpServer", "IP", iplist[0], ConfigPath);
+                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[0]);
+            }
+
+
+
+
+            
+
+
+
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            //AutoChangeIP();
+            MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
+            timer1.Interval = 1000;
+            timer1.Start();
+            txtSec.ReadOnly = true;
+            txtConfigPath.Enabled = false;
+            txtServerName.Enabled = false;
+            btnStart.Enabled = false;
+            btnStop.Enabled = true;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Stop();
+            iInterval = Convert.ToInt16(txtSec.Text.Trim());
+            iInterval--;
+            txtSec.Text = iInterval.ToString();
+            if (iInterval == 0)
+            {
+                AutoChangeIP();
+                txtSec.Text = MAXINTERVAL.ToString();
+                
+            }
+            timer1.Start();
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+           // timer1.Interval = 1000;
+            timer1.Stop();
+            txtSec.ReadOnly = false;
+            txtConfigPath.Enabled = true;
+            txtServerName.Enabled = true;
+            btnStart.Enabled = true;
+            btnStop.Enabled = false;
+        }
+
+
     }
 }
