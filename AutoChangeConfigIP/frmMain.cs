@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.IO;
 using Edward;
 using System.Net;
+using System.Management;
 
 namespace AutoChangeConfigIP
 {
@@ -25,6 +26,7 @@ namespace AutoChangeConfigIP
         private static string ConfigPath = @"D:\RecordColl\RecordCollCfg.ini";
         private static string ServerName = "";
         private static int NetTag = -1;
+        private static string LocalIP = string.Empty;
 
         int iInterval = 10;
         int MAXINTERVAL = 10;
@@ -62,9 +64,11 @@ namespace AutoChangeConfigIP
         /// </summary>
         private void Init()
         {
-            this.Text = "自动更改采集站服务器IP,Ver:" + Application.ProductVersion;
+            LocalIP = GetIPAddress();
+            this.Text = "自动更改采集站服务器IP(LocalIP:" + LocalIP +"),Ver:" + Application.ProductVersion;
             txtConfigPath.SetWatermark("双击此处选择采集站配置档案");
-            txtServerName.SetWatermark("请在此输入采集站服务器的电脑名");  
+            txtServerName.SetWatermark("请在此输入采集站服务器的电脑名");
+
             CreateFolder();
             CreateIni();
             ReadIni();
@@ -414,15 +418,11 @@ namespace AutoChangeConfigIP
         private void btnDebugNet_Click(object sender, EventArgs e)
         {
 
-                if (!bgwCheckServer.IsBusy)
-                {
-                    UpdateMsg("正在测试网卡...");
-                    bgwCheckServer.RunWorkerAsync();
-                }
-
-
-
-
+            if (!bgwCheckServer.IsBusy)
+            {
+                UpdateMsg("正在测试网卡...");
+                bgwCheckServer.RunWorkerAsync();
+            }
 
         }
 
@@ -524,6 +524,51 @@ namespace AutoChangeConfigIP
         {
             PressStart();
         }
+
+
+
+
+
+
+        #region GetLocalIP
+
+        public string GetIPAddress()
+        {
+            try
+            {
+                //获取IP地址 
+                string st = "";
+                ManagementClass mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
+                ManagementObjectCollection moc = mc.GetInstances();
+                foreach (ManagementObject mo in moc)
+                {
+                    if ((bool)mo["IPEnabled"] == true)
+                    {
+                        //st=mo["IpAddress"].ToString(); 
+                        System.Array ar;
+                        ar = (System.Array)(mo.Properties["IpAddress"].Value);
+                        st = ar.GetValue(0).ToString();
+                        break;
+                    }
+                }
+                moc = null;
+                mc = null;
+                return st;
+            }
+            catch
+            {
+                return "unknow";
+            }
+            finally
+            {
+            }
+
+        }
+
+ 
+
+
+        #endregion
 
 
     }
