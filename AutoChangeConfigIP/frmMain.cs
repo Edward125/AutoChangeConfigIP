@@ -196,6 +196,7 @@ namespace AutoChangeConfigIP
 
         private void UpdateMsg(string msg)
         {
+            
             lstMsg.Items.Add(DateTime.Now.ToString("hh:mm:ss") + "->" + @msg);
             lstMsg.SelectedIndex = lstMsg.Items.Count - 1;
         }
@@ -258,20 +259,32 @@ namespace AutoChangeConfigIP
                 UpdateMsg("服务器" + ServerName +","+ exmsg);
             }
 
-            if (databaseip != iplist[NetTag-1])
+
+            if (NetTag <= iplist.Count)
             {
-                IniFile.IniWriteValue("DataBaseServer", "IP", iplist[NetTag-1 ], ConfigPath);
-                UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[NetTag-1 ]);
-            }
-            if (ctrlserverip != iplist[NetTag-1 ])
-            {
-                IniFile.IniWriteValue("CtrlServer", "IP", iplist[NetTag-1 ], ConfigPath);
-                UpdateMsg("服务器IP自动变更," + ctrlserverip  + "->" + iplist[NetTag-1 ]);
-            }
-            if (ftpip != iplist[NetTag-1])
-            {
-                IniFile.IniWriteValue("FtpServer", "IP", iplist[NetTag-1 ], ConfigPath);
-                UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[NetTag-1 ]);
+                if (Other.pingIp(iplist[NetTag - 1]))
+                {
+                    if (databaseip != iplist[NetTag - 1])
+                    {
+                        IniFile.IniWriteValue("DataBaseServer", "IP", iplist[NetTag - 1], ConfigPath);
+                        UpdateMsg("数据库IP自动变更," + databaseip + "->" + iplist[NetTag - 1]);
+                    }
+                    if (ctrlserverip != iplist[NetTag - 1])
+                    {
+                        IniFile.IniWriteValue("CtrlServer", "IP", iplist[NetTag - 1], ConfigPath);
+                        UpdateMsg("服务器IP自动变更," + ctrlserverip + "->" + iplist[NetTag - 1]);
+                    }
+                    if (ftpip != iplist[NetTag - 1])
+                    {
+                        IniFile.IniWriteValue("FtpServer", "IP", iplist[NetTag - 1], ConfigPath);
+                        UpdateMsg("FTP IP自动变更," + ftpip + "->" + iplist[NetTag - 1]);
+                    }
+                }
+                else
+                {
+                    UpdateMsg("设置的服务器的IP为:" + iplist[NetTag - 1] + ",但无法ping通,请确认.");
+                }
+
             }
 
 
@@ -287,7 +300,8 @@ namespace AutoChangeConfigIP
         {
             if (!bgwChangeIP.IsBusy)
             {
-                PressStart();
+                //PressStart();
+                bgwChangeIP.RunWorkerAsync();
             }
 
         }
@@ -297,6 +311,8 @@ namespace AutoChangeConfigIP
 
         private void PressStart()
         {
+            string exmsg = string.Empty;
+
           this.Invoke((EventHandler)(delegate
           {
               UpdateMsg("正在测试网卡...");
@@ -307,7 +323,7 @@ namespace AutoChangeConfigIP
               }
               else
               {
-                  string exmsg = string.Empty;
+                
                   List<string> iplist = getIP(ServerName, IPType.IPV4, out exmsg);
                   comboNetIpList.Items.Clear();
                   if (exmsg == "OK")
@@ -346,21 +362,26 @@ namespace AutoChangeConfigIP
           }));
 
 
-
-
+          this.Invoke((EventHandler)(delegate
+             {
+                 if (exmsg == "OK")
+                 {
+                     timer1.Interval = 1000;
+                     timer1.Start();
+                     UpdateMsg("正在倒计时等待...");
+                     txtSec.ReadOnly = true;
+                     txtConfigPath.Enabled = false;
+                     txtServerName.Enabled = false;
+                     btnStart.Enabled = false;
+                     btnStop.Enabled = true;
+                     comboNetIpList.Enabled = false;
+                     btnDebugNet.Enabled = false;
+                 }
+             }));
 
             //
             // MAXINTERVAL = Convert.ToInt16(txtSec.Text.Trim());
-            timer1.Interval = 1000;
-            timer1.Start();
-            UpdateMsg("正在倒计时等待...");
-            txtSec.ReadOnly = true;
-            txtConfigPath.Enabled = false;
-            txtServerName.Enabled = false;
-            btnStart.Enabled = false;
-            btnStop.Enabled = true;
-            comboNetIpList.Enabled = false;
-            btnDebugNet.Enabled = false;
+
         }
         private void timer1_Tick(object sender, EventArgs e)
         {
@@ -392,11 +413,16 @@ namespace AutoChangeConfigIP
 
         private void btnDebugNet_Click(object sender, EventArgs e)
         {
-            if (!bgwCheckServer.IsBusy)
-            {
-                UpdateMsg("正在测试网卡...");
-               bgwCheckServer.RunWorkerAsync();
-            }
+
+                if (!bgwCheckServer.IsBusy)
+                {
+                    UpdateMsg("正在测试网卡...");
+                    bgwCheckServer.RunWorkerAsync();
+                }
+
+
+
+
 
         }
 
@@ -433,7 +459,16 @@ namespace AutoChangeConfigIP
                       {
                           comboNetIpList.Items.Add("网卡1的IP:" + iplist[0]);
                           comboNetIpList.SelectedIndex = 0;
-                          UpdateMsg("服务器网卡数为1,已自动设置.");
+                          if (Other.pingIp(iplist[0]))
+                              UpdateMsg("服务器网卡数为1,已自动设置.");
+                          else
+                          {
+                              UpdateMsg("服务器网卡数为1,但无法ping通其IP:" + iplist[0] + ",请重新确认.");
+                              MessageBox.Show("服务器网卡数为1,但无法ping通其IP:" + iplist[0] + ",请重新确认.", "Ping IP Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                          }
+                          
+
+
                       }
                   }
                   else
