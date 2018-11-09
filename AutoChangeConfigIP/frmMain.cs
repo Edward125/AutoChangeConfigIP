@@ -286,7 +286,14 @@ namespace AutoChangeConfigIP
                 }
                 else
                 {
-                    UpdateMsg("设置的服务器的IP为:" + iplist[NetTag - 1] + ",但无法ping通,请确认.");
+                    UpdateMsg("设置的服务器的IP为:" + iplist[NetTag - 1] + ",但无法ping通,将自动更改为本地IP.");
+                    IniFile.IniWriteValue("DataBaseServer", "IP", LocalIP , ConfigPath);
+                    UpdateMsg("数据库IP自动变更," + databaseip + "->" + LocalIP);
+                    IniFile.IniWriteValue("CtrlServer", "IP", LocalIP , ConfigPath);
+                    UpdateMsg("服务器IP自动变更," + ctrlserverip + "->" + LocalIP);
+                    IniFile.IniWriteValue("FtpServer", "IP", LocalIP, ConfigPath);
+                    UpdateMsg("FTP IP自动变更," + ftpip + "->" + LocalIP);
+
                 }
 
             }
