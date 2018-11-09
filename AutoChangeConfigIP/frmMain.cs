@@ -261,6 +261,13 @@ namespace AutoChangeConfigIP
             else
             {
                 UpdateMsg("服务器" + ServerName +","+ exmsg);
+                UpdateMsg("设置的服务器的IP为本地IP.");
+                IniFile.IniWriteValue("DataBaseServer", "IP", LocalIP, ConfigPath);
+                UpdateMsg("数据库IP自动变更," + databaseip + "->" + LocalIP);
+                IniFile.IniWriteValue("CtrlServer", "IP", LocalIP, ConfigPath);
+                UpdateMsg("服务器IP自动变更," + ctrlserverip + "->" + LocalIP);
+                IniFile.IniWriteValue("FtpServer", "IP", LocalIP, ConfigPath);
+                UpdateMsg("FTP IP自动变更," + ftpip + "->" + LocalIP);
             }
 
 
@@ -496,22 +503,41 @@ namespace AutoChangeConfigIP
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (dr == DialogResult.Yes)
+            try
             {
-                Environment.Exit(0);
+                DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dr == DialogResult.Yes)
+                {
+                    Environment.Exit(0);
+                }
+                else
+                    e.Cancel = true;
             }
-            else
-                e.Cancel = true;
+            catch (Exception)
+            {
+                
+           
+            }
+
+    
         }
 
         private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (dr == DialogResult.Yes)
+            try
             {
-                Environment.Exit(0);
+                DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dr == DialogResult.Yes)
+                {
+                    Environment.Exit(0);
+                }
             }
+            catch (Exception)
+            {
+                
+
+            }
+  
 
 
         }
