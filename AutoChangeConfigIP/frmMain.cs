@@ -200,9 +200,12 @@ namespace AutoChangeConfigIP
 
         private void UpdateMsg(string msg)
         {
-            
+    
+            if (lstMsg.Items.Count > 200)
+                lstMsg.Items.Clear();
             lstMsg.Items.Add(DateTime.Now.ToString("hh:mm:ss") + "->" + @msg);
             lstMsg.SelectedIndex = lstMsg.Items.Count - 1;
+            
         }
 
 
@@ -508,6 +511,7 @@ namespace AutoChangeConfigIP
                 DialogResult dr = MessageBox.Show("是否确认退出软件,退出点击是(Y),不退出点击否(N)?", "Exit?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dr == DialogResult.Yes)
                 {
+                    timer1.Stop();
                     Environment.Exit(0);
                 }
                 else
